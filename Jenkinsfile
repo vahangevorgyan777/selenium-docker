@@ -1,48 +1,28 @@
 pipeline {
-    agent {
-        docker { image 'maven:3.9.2-openjdk-17' } // Maven + Java 17
-    }
+    agent any
 
-    environment {
-        MAVEN_OPTS = "-Dmaven.repo.local=.m2/repository"
+    tools {
+        maven 'Maven3' // имя из UI Global Tool Configuration
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/vahangevorgyan777/selenium-docker.git'
+                git 'https://github.com/vahangevorgyan777/selenium-docker.git'
             }
         }
 
-        stage('Build') {
+        stage('Build & Test') {
             steps {
-                sh 'mvn clean compile'
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                sh 'mvn test'
+                sh 'mvn clean test'
             }
         }
 
         stage('Archive Results') {
             steps {
-                archiveArtifacts artifacts: '**/target/surefire-reports/*.xml', allowEmptyArchive: true
+                archiveArtifacts artifacts: '**/target/surefire-reports/*.xml'
                 junit '**/target/surefire-reports/*.xml'
             }
-        }
-    }
-
-    post {
-        always {
-            echo 'Pipeline finished!'
-        }
-        success {
-            echo 'All tests passed ✅'
-        }
-        failure {
-            echo 'Some tests failed ❌'
         }
     }
 }
