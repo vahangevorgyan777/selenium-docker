@@ -1,33 +1,49 @@
 pipeline {
-    agent none
+    agent any
+
+    environment {
+        MAVEN_OPTS = "-Dmaven.repo.local=.m2/repository"
+    }
+
     stages {
-        stage('Build Jar') {
-            agent {
-                docker {
-                    image 'maven:3-alpine'
-                    args '-v /root/.m2:/root/.m2'
-                }
-            }
+        stage('Checkout') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                echo 'Cloning repository...'
+                git url: 'https://github.com/vahangevorgyan777/selenium-docker.git' 
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building project...'
+                sh 'mvn clean compile'
             }
         }
-        stage('Build Image') {
+
+        stage('Run Tests') {
             steps {
-                script {
-                	app = docker.build("vahansdocker/selenium-docker")
-                }
+                echo 'Running automated tests...'
+                sh 'mvn test'
             }
         }
-        stage('Push Image') {
+
+        stage('Archive Results') {
             steps {
-                script {
-			        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-			        	app.push("${BUILD_NUMBER}")
-			            app.push("latest")
-			        }
-                }
+                echo 'Archiving test reports...'
+                archiveArtifacts artifacts: '**/target/surefire-reports/*.xml', allowEmptyArchive: true
+                junit '**/target/surefire-reports/*.xml'
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished!'
+        }
+        success {
+            echo 'All tests passed ✅'
+        }
+        failure {
+            echo 'Some tests failed ❌'
         }
     }
 }
