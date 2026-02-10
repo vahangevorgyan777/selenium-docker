@@ -10,6 +10,7 @@ pipeline {
             steps {
                 echo 'Cloning repository...'
                 git url: 'https://github.com/vahangevorgyan777/selenium-docker.git' 
+            }
         }
 
         stage('Build') {
