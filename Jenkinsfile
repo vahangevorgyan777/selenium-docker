@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        docker { image 'maven:3.9.2-openjdk-17' } // Maven + Java 17
+    }
 
     environment {
         MAVEN_OPTS = "-Dmaven.repo.local=.m2/repository"
@@ -8,28 +10,24 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                echo 'Cloning repository...'
-                git url: 'https://github.com/vahangevorgyan777/selenium-docker.git' 
+                git url: 'https://github.com/vahangevorgyan777/selenium-docker.git'
             }
         }
 
         stage('Build') {
             steps {
-                echo 'Building project...'
                 sh 'mvn clean compile'
             }
         }
 
         stage('Run Tests') {
             steps {
-                echo 'Running automated tests...'
                 sh 'mvn test'
             }
         }
 
         stage('Archive Results') {
             steps {
-                echo 'Archiving test reports...'
                 archiveArtifacts artifacts: '**/target/surefire-reports/*.xml', allowEmptyArchive: true
                 junit '**/target/surefire-reports/*.xml'
             }
