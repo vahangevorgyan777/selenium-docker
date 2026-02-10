@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3' // имя из UI Global Tool Configuration
+        maven 'Maven' // имя из UI Global Tool Configuration
     }
 
     stages {
